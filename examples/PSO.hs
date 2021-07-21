@@ -1,5 +1,4 @@
 {-# LANGUAGE FlexibleInstances #-}
-module Main where
 
 import Pops.Data
 import Pops.Operators
@@ -52,8 +51,8 @@ validateRoC roc
 getBestPosition :: [PSOSolution Vec] -> PSOSolution Vec
 getBestPosition = minimumBy (\a b -> compare (cost $ value a) (cost $ value b))
 
-modifySolution :: PopulationalModifier (PSOSolution Vec)
-modifySolution pop = mapM (mod' gbest) pop
+changeVelocity :: PopulationalModifier (PSOSolution Vec)
+changeVelocity pop = mapM (mod' gbest) pop
   where
     gbest = value $ getBestPosition pop
     mod' :: Vec -> PSOSolution Vec -> Rng (PSOSolution Vec)
@@ -70,7 +69,7 @@ modifySolution pop = mapM (mod' gbest) pop
       let nb = if cost np > cost lb then np else lb
       return $ PSOSolution np nv nb (cost np)
 
-pso = PopMod modifySolution End
+pso = PopMod changeVelocity End
 
 main :: IO ()
 main = do
