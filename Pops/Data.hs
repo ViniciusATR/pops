@@ -1,5 +1,5 @@
 {-# LANGUAGE FlexibleInstances #-}
-module Pops.Solution (
+module Pops.Data (
   Rng,
   Representation (..),
   Solution (..),
