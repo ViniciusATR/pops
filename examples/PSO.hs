@@ -2,16 +2,10 @@
 
 import Pops.Data
 import Pops.Operators
-import System.Random
+import Pops.Rng
 import Control.Monad.State.Strict
 import Data.List (minimumBy)
 
-
-randomDouble :: Double -> Double -> Rng Double
-randomDouble min max = state $ randomR (min::Double, max::Double)
-
-randomProbability :: Rng Double
-randomProbability = state $ randomR (0.0::Double, 1.0::Double)
 
 instance Representation [Double] where
   cost s =  10 * n + cumsum

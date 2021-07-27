@@ -8,6 +8,7 @@ module Pops.Operators (
   executeAlgorithm
  )where
 import Pops.Data
+import Pops.Rng
 import System.Random
 import Control.Monad.State.Strict
 
