@@ -30,6 +30,15 @@ executable ga
                        pops,
                        mtl,
                        random
+
+executable optai
+  hs-source-dirs:      examples
+  main-is:             OptAi.hs
+  default-language:    Haskell2010
+  build-depends:       base >= 4.7 && < 5,
+                       pops,
+                       mtl,
+                       random
 library
   exposed-modules: Pops.Data,
                    Pops.Operators,

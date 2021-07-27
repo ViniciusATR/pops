@@ -5,7 +5,8 @@ module Pops.Rng(
   randomBool,
   randomInt,
   randomGaussian,
-  randomGaussian'
+  randomGaussian',
+  sample
   )where
 
 import System.Random
@@ -43,3 +44,9 @@ randomGaussian sd m = state $ gaussian sd m
 
 randomGaussian' :: (Floating a, Random a) => Rng a
 randomGaussian' = state $ gaussian 1.0 0.0
+
+sample :: [a] -> Rng a
+sample xs = do
+  idx <- randomInt 0 (n - 1)
+  return $ xs !! idx
+    where n = length xs
