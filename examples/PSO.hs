@@ -20,8 +20,6 @@ instance Representation [Double] where
       inner = map (\x -> x^2 - 10 * cos (2 * pi * x)) s
       cumsum = sum inner
 
-type Vec = [Double]
-
 data PSOSolution a = PSOSolution {
                                   value :: a,
                                   velocity :: a,
@@ -29,7 +27,7 @@ data PSOSolution a = PSOSolution {
                                   fitness :: Double
                                } deriving(Show)
 
-instance Solution (PSOSolution Vec) where
+instance Solution (PSOSolution [Double]) where
   createRandom = do
     pos <- replicateM n $ randomDouble (-dim) dim
     vel <- replicateM n $ randomDouble (-maxv) maxv
@@ -48,14 +46,14 @@ validateRoC roc
     where max = 1.0
 
 
-getBestPosition :: [PSOSolution Vec] -> PSOSolution Vec
+getBestPosition :: [PSOSolution [Double]] -> PSOSolution [Double]
 getBestPosition = minimumBy (\a b -> compare (cost $ value a) (cost $ value b))
 
-changeVelocity :: PopulationalModifier (PSOSolution Vec)
+changeVelocity :: PopulationalModifier (PSOSolution [Double])
 changeVelocity pop = mapM (mod' gbest) pop
   where
     gbest = value $ getBestPosition pop
-    mod' :: Vec -> PSOSolution Vec -> Rng (PSOSolution Vec)
+    mod' :: [Double] -> PSOSolution [Double] -> Rng (PSOSolution [Double])
     mod' gb sol = do
       let c = value sol
       let cv = velocity sol
