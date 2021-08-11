@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 
 import Pops.Data
 import Pops.Operators
@@ -8,13 +9,6 @@ import Control.Monad.State.Strict
 import Data.List ( groupBy, sortBy, minimumBy, maximumBy,sort, tails )
 
 
-instance Representation [Double] where
-  cost s =  10 * n + cumsum
-    where
-      n = fromIntegral $ length s
-      inner = map (\x -> x^2 - 10 * cos (2 * pi * x)) s
-      cumsum = sum inner
-
 data AISolution a = AISolution {
                                   value :: a,
                                   fitness :: Double,
@@ -22,11 +16,23 @@ data AISolution a = AISolution {
                                } deriving(Show)
 
 
-instance Solution (AISolution [Double]) where
-  createRandom = do
-    vec <- replicateM 2 $ randomDouble (-5.12) 5.12
-    return $ AISolution vec (cost vec) 0.0
+instance Solution AISolution [Double] where
+  cost sol =  10 * n + cumsum
+    where
+      s = value sol
+      n = fromIntegral $ length s
+      inner = map (\x -> x^2 - 10 * cos (2 * pi * x)) s
+      cumsum = sum inner
 
+  updateSolution current newValue = intermediate { fitness = fitness' }
+    where
+      intermediate = current { value = newValue }
+      fitness' = cost intermediate
+
+  createRandom = do
+    let newSol = AISolution [0.0, 0.0] 0.0 0.0
+    vec <- replicateM 2 $ randomDouble (-5.12) 5.12
+    return $ updateSolution newSol vec
 
 distance :: AISolution [Double] -> AISolution [Double] -> Double
 distance a b = sqrt $ sum sumOfSquares
@@ -35,21 +41,21 @@ distance a b = sqrt $ sum sumOfSquares
 
 
 avgCost :: [AISolution [Double]] -> Double
-avgCost pop =  sum (map (cost.value) pop) / n
+avgCost pop =  sum (map cost pop) / n
   where
     n = fromIntegral $ length pop
 
 getBest :: [AISolution [Double]] -> AISolution [Double]
-getBest = minimumBy (\a b -> compare (cost $ value a) (cost $ value b))
+getBest = minimumBy (\a b -> compare (cost a) (cost b))
 
 getWorst :: [AISolution [Double]] -> AISolution [Double]
-getWorst = maximumBy (\a b -> compare (cost $ value a) (cost $ value b))
+getWorst = maximumBy (\a b -> compare (cost a) (cost b))
 
 normalizeFitness :: [AISolution [Double]] -> [AISolution [Double]]
 normalizeFitness pop = map normalize pop
   where
-    min = cost $ value $ getBest pop
-    max = cost $ value $ getWorst pop
+    min = cost $ getBest pop
+    max = cost $ getWorst pop
     range = max - min
     normalize sol = AISolution (value sol) (fitness sol) normalized
       where
@@ -60,7 +66,7 @@ mutate sol = do
   modVec <- replicateM 2 randomGaussian'
   let alpha = (1.0/100.0) * exp ( - (normalizedFitness sol) )
   let newVec = zipWith (\s r -> s + r * alpha) (value sol) modVec
-  return $ AISolution newVec (cost newVec) 0.0
+  return $ updateSolution sol newVec
 
 cloneSelection :: PopulationalModifier (AISolution [Double])
 cloneSelection pop = do
