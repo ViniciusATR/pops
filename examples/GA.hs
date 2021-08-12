@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 
 import Pops.Data
 import Pops.Operators
@@ -8,22 +9,28 @@ import Control.Monad.State.Strict
 import Data.List (minimumBy, tails, sortBy)
 
 
-instance Representation [Double] where
-  cost s =  10 * n + cumsum
-    where
-      n = fromIntegral $ length s
-      inner = map (\x -> x^2 - 10 * cos (2 * pi * x)) s
-      cumsum = sum inner
-
 data GASolution a = GASolution {
                                   value :: a,
                                   fitness :: Double
                                } deriving(Show)
 
-instance Solution (GASolution [Double]) where
+instance Solution GASolution [Double] where
+  cost sol =  10 * n + cumsum
+    where
+      s = value sol
+      n = fromIntegral $ length s
+      inner = map (\x -> x^2 - 10 * cos (2 * pi * x)) s
+      cumsum = sum inner
+
+  updateSolution current newValue = intermediate { fitness = fitness' }
+    where
+      intermediate = current { value = newValue }
+      fitness' = cost intermediate
+
   createRandom = do
+    let newSol = GASolution [0.0, 0.0] 0.0
     vec <- replicateM 2 $ randomDouble (-5.12) 5.12
-    return $ GASolution vec (cost vec)
+    return $ updateSolution newSol vec
 
 mutate :: IndividualModifier (GASolution [Double])
 mutate s = do
@@ -33,7 +40,7 @@ mutate s = do
     modVec <- replicateM 2 randomGaussian'
     alpha <- randomProbability
     let newVal = zipWith (\s r -> s + r * alpha) val modVec
-    return $ GASolution newVal (cost newVal)
+    return $ updateSolution s newVal
   else
     return s
 
@@ -50,7 +57,7 @@ aritMix (sol1, sol2) = do
     let s2' = drop (idx + 1) s2
     let secondSection = zipWith (\x y -> alpha * x + (1 - alpha) * y) s1' s2'
     let newVal = firstSection ++ secondSection
-    return $ GASolution newVal (cost newVal)
+    return $ updateSolution sol1 newVal
   else do
     chooseRand <- randomBool
     return $ if chooseRand then sol1 else sol2
@@ -70,7 +77,7 @@ elitist pop = replicateM 1000 (elitist' pop)
       return $ bestCandidates!!randIndx
 
 getBest :: [GASolution [Double]] -> GASolution [Double]
-getBest = minimumBy (\a b -> compare (cost $ value a) (cost $ value b))
+getBest = minimumBy (\a b -> compare (cost a) (cost b))
 
 ga = PopMod elitist (PopMod crossover (IndMod mutate End))
 
