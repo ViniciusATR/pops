@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 
 import Pops.Data
 import Pops.Operators
@@ -7,13 +8,6 @@ import Control.Monad.State.Strict
 import Data.List (minimumBy)
 
 
-instance Representation [Double] where
-  cost s =  10 * n + cumsum
-    where
-      n = fromIntegral $ length s
-      inner = map (\x -> x^2 - 10 * cos (2 * pi * x)) s
-      cumsum = sum inner
-
 data PSOSolution a = PSOSolution {
                                   value :: a,
                                   velocity :: a,
@@ -21,27 +15,51 @@ data PSOSolution a = PSOSolution {
                                   fitness :: Double
                                } deriving(Show)
 
-instance Solution (PSOSolution [Double]) where
+instance Solution PSOSolution [Double] where
+  cost sol =  10 * n + cumsum
+    where
+      s = value sol
+      n = fromIntegral $ length s
+      inner = map (\x -> x^2 - 10 * cos (2 * pi * x)) s
+      cumsum = sum inner
+
+  updateSolution current newValue = intermediate { fitness = fitness' }
+    where
+      intermediate = current { value = newValue }
+      fitness' = cost intermediate
+
   createRandom = do
     pos <- replicateM n $ randomDouble (-dim) dim
     vel <- replicateM n $ randomDouble (-maxv) maxv
-    return $ PSOSolution pos vel pos (cost pos)
+    let newSol = PSOSolution pos vel pos 0.0
+    return $ updateSolution newSol pos
       where
         n = 2
         dim = 5.12
         maxv = 1.0
 
 
-validateRoC :: Double -> Double
-validateRoC roc
-  | roc > max = max
-  | roc < -max = -max
-  | otherwise = roc
+updateBestPosition :: PSOSolution [Double] -> PSOSolution [Double]
+updateBestPosition sol = if currentCost > bestCost
+                            then sol {bestPosition = value sol}
+                            else sol
+  where
+    bestCost = cost $ sol { value = bestPosition sol }
+    currentCost = fitness sol
+
+updatePosition :: PSOSolution [Double] -> PSOSolution [Double]
+updatePosition sol = sol { value = newValue }
+  where newValue = zipWith (+) (value sol) (velocity sol)
+
+validateVelocity :: Double -> Double
+validateVelocity vel
+  | vel > max = max
+  | vel < -max = -max
+  | otherwise = vel
     where max = 1.0
 
-
 getBestPosition :: [PSOSolution [Double]] -> PSOSolution [Double]
-getBestPosition = minimumBy (\a b -> compare (cost $ value a) (cost $ value b))
+getBestPosition = minimumBy (\a b -> compare (cost a) (cost b))
 
 changeVelocity :: PopulationalModifier (PSOSolution [Double])
 changeVelocity pop = mapM (mod' gbest) pop
@@ -56,10 +74,9 @@ changeVelocity pop = mapM (mod' gbest) pop
       r2 <- randomProbability
       let globalcoeff = zipWith (\x y -> 1.0 * r1 * (y - x)) c gb
       let localcoeff = zipWith (\x y -> 1.0 * r2 * (y - x)) c lb
-      let nv = map validateRoC $ zipWith3 (\a b c -> a + b + c) cv globalcoeff localcoeff
-      let np = zipWith (+) c nv
-      let nb = if cost np > cost lb then np else lb
-      return $ PSOSolution np nv nb (cost np)
+      let newVelocity = map validateVelocity $ zipWith3 (\a b c -> a + b + c) cv globalcoeff localcoeff
+      let newSolution = updateBestPosition $ updatePosition $ sol { velocity = newVelocity }
+      return newSolution
 
 pso = PopMod changeVelocity End
 
