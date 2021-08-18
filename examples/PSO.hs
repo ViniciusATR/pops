@@ -38,19 +38,6 @@ instance Solution PSOSolution [Double] where
         dim = 5.12
         maxv = 1.0
 
-
-updateBestPosition :: PSOSolution [Double] -> PSOSolution [Double]
-updateBestPosition sol = if currentCost > bestCost
-                            then sol {bestPosition = value sol}
-                            else sol
-  where
-    bestCost = cost $ sol { value = bestPosition sol }
-    currentCost = fitness sol
-
-updatePosition :: PSOSolution [Double] -> PSOSolution [Double]
-updatePosition sol = sol { value = newValue }
-  where newValue = zipWith (+) (value sol) (velocity sol)
-
 validateVelocity :: Double -> Double
 validateVelocity vel
   | vel > max = max
@@ -60,6 +47,19 @@ validateVelocity vel
 
 getBestPosition :: [PSOSolution [Double]] -> PSOSolution [Double]
 getBestPosition = minimumBy (\a b -> compare (cost a) (cost b))
+
+updateBestPosition :: IndividualModifier (PSOSolution [Double])
+updateBestPosition sol = do
+  if currentCost > bestCost
+     then return $ sol {bestPosition = value sol}
+     else return sol
+  where
+    bestCost = cost $ sol { value = bestPosition sol }
+    currentCost = fitness sol
+
+updatePosition :: IndividualModifier (PSOSolution [Double])
+updatePosition sol = return $ updateSolution sol newValue
+  where newValue = zipWith (+) (value sol) (velocity sol)
 
 changeVelocity :: PopulationalModifier (PSOSolution [Double])
 changeVelocity pop = mapM (mod' gbest) pop
@@ -75,10 +75,9 @@ changeVelocity pop = mapM (mod' gbest) pop
       let globalcoeff = zipWith (\x y -> 1.0 * r1 * (y - x)) c gb
       let localcoeff = zipWith (\x y -> 1.0 * r2 * (y - x)) c lb
       let newVelocity = map validateVelocity $ zipWith3 (\a b c -> a + b + c) cv globalcoeff localcoeff
-      let newSolution = updateBestPosition $ updatePosition $ sol { velocity = newVelocity }
-      return newSolution
+      return $ sol { velocity = newVelocity }
 
-pso = PopMod changeVelocity End
+pso = PopMod changeVelocity (IndMod updatePosition (IndMod updateBestPosition End))
 
 main :: IO ()
 main = do
