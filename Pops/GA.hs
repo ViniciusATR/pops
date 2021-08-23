@@ -48,7 +48,8 @@ createMutationOperator mutationRate = mutate
       rand <- randomProbability
       if rand < mutationRate then do
         let val = value s
-        modVec <- replicateM 2 randomGaussian'
+        let solutionSize = length val
+        modVec <- replicateM solutionSize randomGaussian'
         alpha <- randomProbability
         let newVal = zipWith (\s r -> s + r * alpha) val modVec
         return $ updateSolution s newVal
@@ -59,10 +60,11 @@ aritMix :: Double -> (GASolution [Double], GASolution [Double]) -> Rng (GASoluti
 aritMix mixProbability (sol1, sol2) = do
   rand <- randomProbability
   if rand < mixProbability then do
-    idx <- randomInt 0 1
-    alpha <- randomProbability
     let s1 = value sol1
     let s2 = value sol2
+    let solutionSize = length s1
+    idx <- randomInt 0 (solutionSize - 1)
+    alpha <- randomProbability
     let firstSection = take ( idx + 1 ) s1
     let s1' = drop (idx + 1) s1
     let s2' = drop (idx + 1) s2
