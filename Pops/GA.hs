@@ -5,7 +5,9 @@ module Pops.GA(
   GASolution,
   createMutationOperator,
   createCrossoverOperator,
-  createTruncationSelector,
+  createTruncationSelection,
+  roulette,
+  createTournamentSelection,
   getBest
   )where
 
@@ -84,8 +86,8 @@ createCrossoverOperator mixProbability populationSize = crossover
       mapM (aritMix mixProbability) pairs
 
 
-createTruncationSelector :: Int -> Int -> PopulationalModifier (GASolution [Double])
-createTruncationSelector numOfSelected populationSize = truncate
+createTruncationSelection :: Int -> Int -> PopulationalModifier (GASolution [Double])
+createTruncationSelection numOfSelected populationSize = truncate
   where
     truncate :: PopulationalModifier (GASolution [Double])
     truncate pop = replicateM populationSize (truncate' pop)
@@ -94,6 +96,30 @@ createTruncationSelector numOfSelected populationSize = truncate
           let bestCandidates = take numOfSelected $ sortBy (\a b -> compare (fitness a) (fitness b)) pop
           randIndx <- randomInt 0 (numOfSelected - 1)
           return $ bestCandidates!!randIndx
+
+
+roulette :: PopulationalModifier (GASolution [Double])
+roulette pop = replicateM populationSize (roulette' pop)
+  where
+    populationSize = length pop
+    roulette' = do
+      let fit = map cost pop
+      let cumsum = sum fit
+      let weights = map (\x -> 1.0 - x/cumsum) fit
+      return $ randomWeightedChoice $ zip pop weights
+
+
+createTournamentSelection :: Int -> PopulationalModifier (GASolution [Double])
+createTournamentSelection tournamentSize = tournament
+  where
+    tournament :: PopulationalModifier (GASolution [Double])
+    tournament pop = replicateM populationSize (tournament' pop)
+      where
+        populationSize = length pop
+        tournament' pop = do
+          participants <- replicateM tournamentSize $ sample pop
+          return $ last $ scanl1 (\x y -> if cost x < cost y then x else y) participants
+
 
 getBest :: [GASolution [Double]] -> GASolution [Double]
 getBest = minimumBy (\a b -> compare (cost a) (cost b))

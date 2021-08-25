@@ -12,7 +12,7 @@ import Data.List (minimumBy, tails, sortBy)
 
 mutate = createMutationOperator 0.5
 crossover = createCrossoverOperator 0.5 1000
-truncateSelect = createTruncationSelector 10 1000
+truncateSelect = createTruncationSelection 10 1000
 
 ga = PopMod truncateSelect (PopMod crossover (IndMod mutate End))
 
