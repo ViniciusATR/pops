@@ -6,11 +6,14 @@ module Pops.Rng(
   randomInt,
   randomGaussian,
   randomGaussian',
-  sample
+  sample,
+  shuffle,
+  randomWeightedChoice
   )where
 
 import System.Random
 import Control.Monad.State.Strict
+import qualified Data.Map as M
 
 type Rng a = State StdGen a
 
@@ -50,3 +53,34 @@ sample xs = do
   idx <- randomInt 0 (n - 1)
   return $ xs !! idx
     where n = length xs
+
+-- Implementação de um shuffle de listas de acordo com
+-- http://okmij.org/ftp/Haskell/perfect-shuffle.txt
+-- Obtido também em https://wiki.haskell.org/Random_shuffle
+
+fisherYatesStep :: RandomGen g => (M.Map Int a, g) -> (Int, a) -> (M.Map Int a, g)
+fisherYatesStep (m, gen) (i, x) = ((M.insert j x . M.insert i (m M.! j)) m, gen')
+  where
+    (j, gen') = randomR (0, i) gen
+
+fisherYates :: RandomGen g => [a] -> g -> ([a], g)
+fisherYates [] gen = ([], gen)
+fisherYates l gen =
+  toElems $ foldl fisherYatesStep (initial (head l) gen) (numerate (tail l))
+  where
+    toElems (x, y) = (M.elems x, y)
+    numerate = zip [1..]
+    initial x gen = (M.singleton 0 x, gen)
+
+shuffle :: [a] -> Rng [a]
+shuffle xs = state $ fisherYates xs
+
+randomWeightedChoice :: [(a, Double)] -> Rng a
+randomWeightedChoice sample = do
+  shuffled <- shuffle sample
+  let weights = map snd sample
+  let minWeight = minimum weights
+  let maxWeight = maximum weights
+  cutoff <- randomDouble minWeight maxWeight
+  let chosen = head $ dropWhile ((<cutoff) . snd) shuffled
+  return $ fst chosen
