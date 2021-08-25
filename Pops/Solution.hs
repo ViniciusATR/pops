@@ -3,11 +3,16 @@
 
 module Pops.Solution (
   Solution (..),
+  SimpleSolution (..)
   ) where
 
 import Pops.Rng
 
-class Solution s a where
-  cost :: s a -> Double
-  updateSolution :: s a -> a -> s a
-  createRandom :: Rng (s a)
+class Solution s where
+  cost :: s -> Double
+  createRandom :: Rng s
+
+class Solution s => SimpleSolution s where
+  getValue :: s -> [Double]
+  updateSolution :: s -> [Double] -> s
+
