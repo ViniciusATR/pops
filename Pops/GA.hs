@@ -1,8 +1,4 @@
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-
 module Pops.GA(
-  GASolution,
   createMutationOperator,
   createCrossoverOperator,
   createTruncationSelection,
@@ -19,37 +15,14 @@ import Control.Monad.State.Strict
 import Data.List (minimumBy, tails, sortBy)
 
 
-data GASolution a = GASolution {
-                                  value :: a,
-                                  fitness :: Double
-                               } deriving(Show)
-
-instance Solution GASolution [Double] where
-  cost sol =  10 * n + cumsum
-    where
-      s = value sol
-      n = fromIntegral $ length s
-      inner = map (\x -> x^2 - 10 * cos (2 * pi * x)) s
-      cumsum = sum inner
-
-  updateSolution current newValue = intermediate { fitness = fitness' }
-    where
-      intermediate = current { value = newValue }
-      fitness' = cost intermediate
-
-  createRandom = do
-    let newSol = GASolution [0.0, 0.0] 0.0
-    vec <- replicateM 2 $ randomDouble (-5.12) 5.12
-    return $ updateSolution newSol vec
-
-createMutationOperator :: Double -> IndividualModifier (GASolution [Double])
+createMutationOperator :: SimpleSolution s => Double -> IndividualModifier s
 createMutationOperator mutationRate = mutate
   where
-    mutate :: IndividualModifier (GASolution [Double])
+    mutate :: SimpleSolution s => IndividualModifier s
     mutate s = do
       rand <- randomProbability
       if rand < mutationRate then do
-        let val = value s
+        let val = getValue s
         let solutionSize = length val
         modVec <- replicateM solutionSize randomGaussian'
         alpha <- randomProbability
@@ -58,12 +31,12 @@ createMutationOperator mutationRate = mutate
       else
         return s
 
-aritMix :: Double -> (GASolution [Double], GASolution [Double]) -> Rng (GASolution [Double])
+aritMix :: SimpleSolution s => Double -> (s, s) -> Rng s
 aritMix mixProbability (sol1, sol2) = do
   rand <- randomProbability
   if rand < mixProbability then do
-    let s1 = value sol1
-    let s2 = value sol2
+    let s1 = getValue sol1
+    let s2 = getValue sol2
     let solutionSize = length s1
     idx <- randomInt 0 (solutionSize - 1)
     alpha <- randomProbability
@@ -77,28 +50,28 @@ aritMix mixProbability (sol1, sol2) = do
     chooseRand <- randomBool
     return $ if chooseRand then sol1 else sol2
 
-createCrossoverOperator :: Double -> Int -> PopulationalModifier (GASolution [Double])
+createCrossoverOperator :: SimpleSolution s => Double -> Int -> PopulationalModifier s
 createCrossoverOperator mixProbability populationSize = crossover
   where
-    crossover :: PopulationalModifier (GASolution [Double])
+    crossover :: SimpleSolution s => PopulationalModifier s
     crossover pop = do
       let pairs = take populationSize $ [(a, b) | (a: bs) <- tails pop, b <- bs]
       mapM (aritMix mixProbability) pairs
 
 
-createTruncationSelection :: Int -> Int -> PopulationalModifier (GASolution [Double])
+createTruncationSelection :: SimpleSolution s => Int -> Int -> PopulationalModifier s
 createTruncationSelection numOfSelected populationSize = truncate
   where
-    truncate :: PopulationalModifier (GASolution [Double])
+    truncate :: SimpleSolution s => PopulationalModifier s
     truncate pop = replicateM populationSize (truncate' pop)
       where
         truncate' pop = do
-          let bestCandidates = take numOfSelected $ sortBy (\a b -> compare (fitness a) (fitness b)) pop
+          let bestCandidates = take numOfSelected $ sortBy (\a b -> compare (cost a) (cost b)) pop
           randIndx <- randomInt 0 (numOfSelected - 1)
           return $ bestCandidates!!randIndx
 
 
-roulette :: PopulationalModifier (GASolution [Double])
+roulette :: SimpleSolution s => PopulationalModifier s
 roulette pop = replicateM populationSize (roulette' pop)
   where
     populationSize = length pop
@@ -109,10 +82,10 @@ roulette pop = replicateM populationSize (roulette' pop)
       return $ randomWeightedChoice $ zip pop weights
 
 
-createTournamentSelection :: Int -> PopulationalModifier (GASolution [Double])
+createTournamentSelection :: SimpleSolution s => Int -> PopulationalModifier s
 createTournamentSelection tournamentSize = tournament
   where
-    tournament :: PopulationalModifier (GASolution [Double])
+    tournament :: SimpleSolution s => PopulationalModifier s
     tournament pop = replicateM populationSize (tournament' pop)
       where
         populationSize = length pop
@@ -121,5 +94,5 @@ createTournamentSelection tournamentSize = tournament
           return $ last $ scanl1 (\x y -> if cost x < cost y then x else y) participants
 
 
-getBest :: [GASolution [Double]] -> GASolution [Double]
+getBest :: SimpleSolution s => [s] -> s
 getBest = minimumBy (\a b -> compare (cost a) (cost b))
