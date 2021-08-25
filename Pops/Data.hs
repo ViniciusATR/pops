@@ -1,13 +1,13 @@
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+
 module Pops.Data (
-  Representation (..),
   Solution (..),
   ) where
 
 import Pops.Rng
 
-class Representation a where
-  cost :: a -> Double
-
-class Solution s where
-  createRandom :: Rng s
+class Solution s a where
+  cost :: s a -> Double
+  updateSolution :: s a -> a -> s a
+  createRandom :: Rng (s a)

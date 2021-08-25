@@ -22,13 +22,13 @@ type PopulationalModifier a = [a] -> Rng [a]
 -- An operation of choice between two operations.
 type Selector a = [a] -> [a] -> Rng [a]
 
-data Populational a where
-  PopMod :: (Solution a) => PopulationalModifier a -> Populational a -> Populational a
-  Select :: (Solution a) => Selector a -> Populational a -> Populational a -> Populational a
-  IndMod :: (Solution a) => IndividualModifier a -> Populational a -> Populational a
-  End :: Populational a
+data Populational s a where
+  PopMod :: (Solution s a) => PopulationalModifier (s a) -> Populational s a -> Populational s a
+  Select :: (Solution s a) => Selector (s a) -> Populational s a -> Populational s a -> Populational s a
+  IndMod :: (Solution s a) => IndividualModifier (s a) -> Populational s a -> Populational s a
+  End :: Populational s a
 
-step :: Solution a => Populational a -> [a] -> Rng [a]
+step :: Solution s a => Populational s a -> [s a] -> Rng [s a]
 step End pop = return pop
 
 step (IndMod mod next) pop = do
@@ -44,7 +44,7 @@ step (Select sel op1 op2) pop = do
   pop2 <- step op2 pop
   sel pop1 pop2
 
-executeAlgorithm :: (Solution a) => Int -> Int -> Int -> Populational a -> [a]
+executeAlgorithm :: (Solution s a) => Int -> Int -> Int -> Populational s a -> [s a]
 executeAlgorithm seed size iter algo = evalState (exec algo initPop 0) gen
   where
     gen = mkStdGen seed
