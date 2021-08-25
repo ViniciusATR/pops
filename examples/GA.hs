@@ -12,9 +12,9 @@ import Data.List (minimumBy, tails, sortBy)
 
 mutate = createMutationOperator 0.5
 crossover = createCrossoverOperator 0.5 1000
-elitist = createElitistSelector 10 1000
+truncateSelect = createTruncationSelector 10 1000
 
-ga = PopMod elitist (PopMod crossover (IndMod mutate End))
+ga = PopMod truncateSelect (PopMod crossover (IndMod mutate End))
 
 main :: IO ()
 main = do

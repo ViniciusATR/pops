@@ -5,7 +5,7 @@ module Pops.GA(
   GASolution,
   createMutationOperator,
   createCrossoverOperator,
-  createElitistSelector,
+  createTruncationSelector,
   getBest
   )where
 
@@ -84,13 +84,13 @@ createCrossoverOperator mixProbability populationSize = crossover
       mapM (aritMix mixProbability) pairs
 
 
-createElitistSelector :: Int -> Int -> PopulationalModifier (GASolution [Double])
-createElitistSelector numOfSelected populationSize = elitist
+createTruncationSelector :: Int -> Int -> PopulationalModifier (GASolution [Double])
+createTruncationSelector numOfSelected populationSize = truncate
   where
-    elitist :: PopulationalModifier (GASolution [Double])
-    elitist pop = replicateM populationSize (elitist' pop)
+    truncate :: PopulationalModifier (GASolution [Double])
+    truncate pop = replicateM populationSize (truncate' pop)
       where
-        elitist' pop = do
+        truncate' pop = do
           let bestCandidates = take numOfSelected $ sortBy (\a b -> compare (fitness a) (fitness b)) pop
           randIndx <- randomInt 0 (numOfSelected - 1)
           return $ bestCandidates!!randIndx
