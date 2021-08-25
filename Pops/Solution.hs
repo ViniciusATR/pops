@@ -1,7 +1,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
-module Pops.Data (
+module Pops.Solution (
   Solution (..),
   ) where
 

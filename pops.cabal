@@ -40,7 +40,7 @@ executable optai
                        mtl,
                        random
 library
-  exposed-modules: Pops.Data,
+  exposed-modules: Pops.Solution,
                    Pops.Operators,
                    Pops.Rng,
                    Pops.GA,

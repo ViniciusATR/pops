@@ -7,7 +7,7 @@ module Pops.Operators (
   Populational(..),
   executeAlgorithm
  )where
-import Pops.Data
+import Pops.Solution
 import Pops.Rng
 import System.Random
 import Control.Monad.State.Strict

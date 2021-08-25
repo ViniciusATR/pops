@@ -1,7 +1,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
-import Pops.Data
+import Pops.Solution
 import Pops.Operators
 import Pops.OptAi
 import Pops.Rng

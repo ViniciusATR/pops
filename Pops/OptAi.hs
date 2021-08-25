@@ -7,7 +7,7 @@ module Pops.OptAi (
   getBest
   )where
 
-import Pops.Data
+import Pops.Solution
 import Pops.Operators
 import Pops.Rng
 import System.Random

@@ -2,7 +2,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 
 import Pops.PSO
-import Pops.Data
+import Pops.Solution
 import Pops.Operators
 import Pops.Rng
 import Control.Monad.State.Strict
