@@ -8,7 +8,8 @@ module Pops.Rng(
   randomGaussian',
   sample,
   shuffle,
-  randomWeightedChoice
+  randomWeightedChoice,
+  genSeeds
   )where
 
 import System.Random
@@ -16,6 +17,11 @@ import Control.Monad.State.Strict
 import qualified Data.Map as M
 
 type Rng a = State StdGen a
+
+genSeeds :: Int -> StdGen -> [StdGen]
+genSeeds n g = map mkStdGen rs
+  where
+    rs = evalState (replicateM n $ randomInt 0 10000000) g
 
 randomDouble :: Double -> Double -> Rng Double
 randomDouble min max = state $ randomR (min::Double, max::Double)

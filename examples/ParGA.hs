@@ -1,0 +1,55 @@
+{-# language DeriveGeneric, DeriveAnyClass, StrictData #-}
+import Pops.Solution
+import Pops.GA
+import Pops.Populational
+import Pops.Rng
+import System.Random
+import Control.Monad.State.Strict
+import Data.List (minimumBy, tails, sortBy)
+import Control.Parallel.Strategies (NFData)
+import GHC.Generics (Generic)
+
+
+data GASolution = GASolution {
+    value :: [Double],
+    fitness :: Double
+} deriving(Show, Generic ,NFData)
+
+instance Solution GASolution where
+  cost sol =  10 * n + cumsum
+    where
+      s = value sol
+      n = fromIntegral $ length s
+      inner = map (\x -> x^2 - 10 * cos (2 * pi * x)) s
+      cumsum = sum inner
+
+  createRandom = do
+    let newSol = GASolution [0.0, 0.0] 0.0
+    vec <- replicateM 2 $ randomDouble (-5.12) 5.12
+    return $ updateSolution newSol vec
+
+instance SimpleSolution GASolution where
+  getValue s = value s
+
+  updateSolution current newValue = intermediate { fitness = fitness' }
+    where
+      intermediate = current { value = newValue }
+      fitness' = cost intermediate
+
+mutate :: IndividualModifier GASolution
+mutate = createMutationOperator 0.5
+
+crossover :: PopulationalModifier GASolution
+crossover = createCrossoverOperator 0.5 1000
+
+truncateSelect :: PopulationalModifier GASolution
+truncateSelect = createTruncationSelection 10 1000
+
+ga :: Populational GASolution
+ga = PopMod truncateSelect (PopMod crossover (IndMod mutate End))
+
+main :: IO ()
+main = do
+  let pops = parExecuteAlgorithm 42 1000 20 ga
+  print $ getBest pops
+
