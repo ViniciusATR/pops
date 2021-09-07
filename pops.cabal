@@ -51,7 +51,7 @@ executable hybrid
 
 library
   exposed-modules: Pops.Solution,
-                   Pops.Operators,
+                   Pops.Populational,
                    Pops.Rng,
                    Pops.GA,
                    Pops.PSO,

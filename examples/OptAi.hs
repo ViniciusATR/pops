@@ -1,5 +1,5 @@
 import Pops.Solution
-import Pops.Operators
+import Pops.Populational
 import Pops.OptAi
 import Pops.Rng
 import System.Random

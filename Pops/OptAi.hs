@@ -5,10 +5,10 @@ module Pops.OptAi (
   )where
 
 import Pops.Solution
-import Pops.Operators
+import Pops.Populational
 import Pops.Rng
 import System.Random
-import Control.Monad.State.Strict
+import Control.Monad.State.Strict ( replicateM )
 import Data.List ( groupBy, sortBy, minimumBy, maximumBy,sort, tails )
 
 

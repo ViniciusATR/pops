@@ -8,7 +8,7 @@ module Pops.GA(
   )where
 
 import Pops.Solution
-import Pops.Operators
+import Pops.Populational
 import Pops.Rng
 import System.Random
 import Control.Monad.State.Strict

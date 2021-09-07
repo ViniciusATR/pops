@@ -1,5 +1,5 @@
 import Pops.Solution
-import Pops.Operators 
+import Pops.Populational
 import qualified Pops.OptAi as OA
 import qualified Pops.GA as GA
 import Pops.Rng

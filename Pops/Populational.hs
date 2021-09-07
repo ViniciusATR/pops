@@ -1,6 +1,6 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE GADTs #-}
-module Pops.Operators (
+module Pops.Populational (
   IndividualModifier,
   PopulationalModifier,
   Selector,
