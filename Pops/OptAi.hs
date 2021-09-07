@@ -1,8 +1,6 @@
 module Pops.OptAi (
   createClonalSelection,
   createTrimmingOperator,
-  getBest,
-  getWorst,
   NormalizedSolution(..)
   )where
 
@@ -18,21 +16,6 @@ class SimpleSolution s => NormalizedSolution s where
   getNormalizedFitness :: s -> Double
   updateNormalizedFitness :: [s] -> [s]
 
-distance :: SimpleSolution s => s -> s -> Double
-distance a b = sqrt $ sum sumOfSquares
-  where
-    sumOfSquares = zipWith (\x y -> (x - y)**2) (getValue a) (getValue b)
-
-avgCost :: SimpleSolution s => [s] -> Double
-avgCost pop =  sum (map cost pop) / n
-  where
-    n = fromIntegral $ length pop
-
-getBest :: SimpleSolution s => [s] -> s
-getBest = minimumBy (\a b -> compare (cost a) (cost b))
-
-getWorst :: SimpleSolution s => [s] -> s
-getWorst = maximumBy (\a b -> compare (cost a) (cost b))
 
 mutate :: NormalizedSolution s => Double -> s -> Rng s
 mutate beta sol = do

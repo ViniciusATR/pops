@@ -38,7 +38,7 @@ instance SimpleSolution PSOSolution where
       fitness' = cost intermediate
 
 instance SolutionWithHistory PSOSolution where
-  getBest s = bestPosition s
+  getBestPosition s = bestPosition s
   updateBest s new = s {bestPosition = new}
 
 instance SolutionWithVelocity PSOSolution where
@@ -53,4 +53,4 @@ pso = PopMod changeVelocity (IndMod updatePosition (IndMod updateBestPosition En
 main :: IO ()
 main = do
   let pops = executeAlgorithm 42 10 20 pso
-  print $ getBestPosition pops
+  print $ getBest pops

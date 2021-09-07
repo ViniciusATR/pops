@@ -6,8 +6,7 @@ module Pops.PSO (
   updatePosition,
   updateBestPosition,
   SolutionWithHistory(..),
-  SolutionWithVelocity(..),
-  getBestPosition
+  SolutionWithVelocity(..)
   )where
 
 import Pops.Solution
@@ -17,7 +16,7 @@ import Control.Monad.State.Strict
 import Data.List (minimumBy)
 
 class SimpleSolution s => SolutionWithHistory s where
-  getBest :: s -> [Double]
+  getBestPosition :: s -> [Double]
   updateBest :: s -> [Double] -> s
 
 class SimpleSolution s => SolutionWithVelocity s where
@@ -31,8 +30,6 @@ validateVelocity max vel
   | vel < -max = -max
   | otherwise = vel
 
-getBestPosition :: SimpleSolution s => [s] -> s
-getBestPosition = minimumBy (\a b -> compare (cost a) (cost b))
 
 updateBestPosition :: (SolutionWithVelocity s, SolutionWithHistory s) => IndividualModifier s
 updateBestPosition sol = do
@@ -40,7 +37,7 @@ updateBestPosition sol = do
      then return $ updateBest sol $ getValue sol
      else return sol
   where
-    bestCost = cost $ updateSolution sol $ getBest sol
+    bestCost = cost $ updateSolution sol $ getBestPosition sol
     currentCost = cost sol
 
 updatePosition :: SolutionWithVelocity s =>  IndividualModifier s
@@ -53,13 +50,13 @@ createChangeVelocityOperator maximumVelocity localbias globalbias = changeVeloci
     changeVelocity :: (SolutionWithVelocity s, SolutionWithHistory s) => PopulationalModifier s
     changeVelocity pop = mapM (modify gbest) pop
       where
-        gbest = getValue $ getBestPosition pop
+        gbest = getValue $ getBest pop
 
     modify :: (SolutionWithVelocity s, SolutionWithHistory s) => [Double] -> s -> Rng s
     modify gb sol = do
       let c = getValue sol
       let cv = getVelocity sol
-      let lb = getBest sol
+      let lb = getBestPosition sol
       r1 <- randomProbability
       r2 <- randomProbability
       let globalcoeff = zipWith (\x y -> globalbias * r1 * (y - x)) c gb

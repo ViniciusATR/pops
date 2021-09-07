@@ -36,8 +36,8 @@ instance OA.NormalizedSolution HybridSolution where
   getNormalizedFitness s = normalizedFitness s
   updateNormalizedFitness pop = map normalize pop
     where
-      min = cost $ OA.getBest pop
-      max = cost $ OA.getWorst pop
+      min = cost $ getBest pop
+      max = cost $ getWorst pop
       range = max - min
       normalize sol = HybridSolution (value sol) (fitness sol) normalized
         where
@@ -61,4 +61,4 @@ hybrid = PopMod truncateSelect (PopMod crossover (IndMod mutate (PopMod cloneSel
 main :: IO ()
 main = do
     let pops = executeAlgorithm 42 1000 20 hybrid
-    print $ OA.getBest pops
+    print $ getBest pops

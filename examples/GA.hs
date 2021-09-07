@@ -8,9 +8,9 @@ import Data.List (minimumBy, tails, sortBy)
 
 
 data GASolution = GASolution {
-                                  value :: [Double],
-                                  fitness :: Double
-                               } deriving(Show)
+    value :: [Double],
+    fitness :: Double
+} deriving(Show)
 
 instance Solution GASolution where
   cost sol =  10 * n + cumsum

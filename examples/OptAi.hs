@@ -7,10 +7,10 @@ import Control.Monad.State.Strict
 import Data.List ( groupBy, sortBy, minimumBy, maximumBy,sort, tails )
 
 data AISolution = AISolution {
-                                  value :: [Double],
-                                  fitness :: Double,
-                                  normalizedFitness :: Double
-                               } deriving(Show)
+   value :: [Double],
+   fitness :: Double,
+   normalizedFitness :: Double
+} deriving(Show)
 
 instance Solution AISolution where
   cost sol =  10 * n + cumsum

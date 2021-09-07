@@ -92,7 +92,3 @@ createTournamentSelection tournamentSize = tournament
         tournament' pop = do
           participants <- replicateM tournamentSize $ sample pop
           return $ last $ scanl1 (\x y -> if cost x < cost y then x else y) participants
-
-
-getBest :: SimpleSolution s => [s] -> s
-getBest = minimumBy (\a b -> compare (cost a) (cost b))
