@@ -39,6 +39,16 @@ executable optai
                        pops,
                        mtl,
                        random
+
+executable hybrid
+  hs-source-dirs:      examples
+  main-is:             Hybrid.hs
+  default-language:    Haskell2010
+  build-depends:       base >= 4.7 && < 5,
+                       pops,
+                       mtl,
+                       random
+
 library
   exposed-modules: Pops.Solution,
                    Pops.Operators,

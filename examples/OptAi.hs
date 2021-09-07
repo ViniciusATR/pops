@@ -49,6 +49,7 @@ triggerTrim = createTrimmingOperator 0.01 100
 cloneSelection :: PopulationalModifier AISolution
 cloneSelection = createClonalSelection 100.0 10
 
+optai :: Populational AISolution
 optai = Select triggerTrim (PopMod cloneSelection End) End
 
 main :: IO ()

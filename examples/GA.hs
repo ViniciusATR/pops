@@ -42,6 +42,7 @@ crossover = createCrossoverOperator 0.5 1000
 truncateSelect :: PopulationalModifier GASolution
 truncateSelect = createTruncationSelection 10 1000
 
+ga :: Populational GASolution
 ga = PopMod truncateSelect (PopMod crossover (IndMod mutate End))
 
 main :: IO ()
