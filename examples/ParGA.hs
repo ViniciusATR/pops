@@ -50,6 +50,6 @@ ga = PopMod truncateSelect (PopMod crossover (IndMod mutate End))
 
 main :: IO ()
 main = do
-  let pops = parExecuteAlgorithm 42 1000 20 ga
+  let pops = parExecuteAlgorithm 42 1000 1000 ga
   print $ getBest pops
 

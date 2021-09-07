@@ -1,16 +1,19 @@
+{-# language DeriveGeneric, DeriveAnyClass, StrictData #-}
 import Pops.PSO
 import Pops.Solution
 import Pops.Populational
 import Pops.Rng
 import Control.Monad.State.Strict
 import Data.List (minimumBy)
+import Control.Parallel.Strategies (NFData)
+import GHC.Generics (Generic)
 
 data PSOSolution = PSOSolution {
                                   value :: [Double],
                                   velocity :: [Double],
                                   bestPosition :: [Double],
                                   fitness :: Double
-                               } deriving(Show)
+                               } deriving(Show,  Generic ,NFData)
 
 instance Solution PSOSolution where
   cost sol =  10 * n + cumsum
@@ -52,5 +55,5 @@ pso = PopMod changeVelocity (IndMod updatePosition (IndMod updateBestPosition En
 
 main :: IO ()
 main = do
-  let pops = executeAlgorithm 42 100 1000 pso
+  let pops = parExecuteAlgorithm 42 100 1000 pso
   print $ getBest pops
