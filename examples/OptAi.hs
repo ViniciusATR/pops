@@ -2,7 +2,6 @@ import Pops.Solution
 import Pops.Populational
 import Pops.OptAi
 import Pops.Rng
-import System.Random
 import Control.Monad.State.Strict
 import Data.List ( groupBy, sortBy, minimumBy, maximumBy,sort, tails )
 

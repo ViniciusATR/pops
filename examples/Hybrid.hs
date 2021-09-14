@@ -3,7 +3,6 @@ import Pops.Populational
 import qualified Pops.OptAi as OA
 import qualified Pops.GA as GA
 import Pops.Rng
-import System.Random
 import Control.Monad.State.Strict
 
 data HybridSolution = HybridSolution {

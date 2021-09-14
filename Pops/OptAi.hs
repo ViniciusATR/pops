@@ -7,7 +7,6 @@ module Pops.OptAi (
 import Pops.Solution
 import Pops.Populational
 import Pops.Rng
-import System.Random
 import Control.Monad.State.Strict ( replicateM )
 import Data.List ( groupBy, sortBy, minimumBy, maximumBy,sort, tails )
 

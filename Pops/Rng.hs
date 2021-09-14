@@ -12,28 +12,57 @@ module Pops.Rng(
   genSeeds
   )where
 
-import System.Random
+import GHC.Word (Word64)
+import Data.Bits ((.&.))
+import qualified System.Random.Mersenne.Pure64 as Mer
 import Control.Monad.State.Strict
 import qualified Data.Map as M
 
-type Rng a = State StdGen a
+type Rng a = State Mer.PureMT a
 
-genSeeds :: Int -> StdGen -> [StdGen]
-genSeeds n g = map mkStdGen rs
+genSeeds :: Int -> Mer.PureMT -> [Mer.PureMT]
+genSeeds n g = map Mer.pureMT rs
   where
-    rs = evalState (replicateM n $ randomInt 0 10000000) g
+    rs = evalState (replicateM n randomWordS) g
+
+randomWordS :: Rng Word64
+randomWordS = state Mer.randomWord64
+
+randomProbMersenne :: Mer.PureMT -> (Double, Mer.PureMT)
+randomProbMersenne g = (fromIntegral w / maxWord , g')
+  where
+    (w, g') = Mer.randomWord g
+    maxWord = fromIntegral (maxBound :: Word) :: Double
+
+randomBoolMersenne :: Mer.PureMT -> (Bool, Mer.PureMT)
+randomBoolMersenne g = (b, g')
+  where
+    (w, g') = Mer.randomWord g
+    b = w .&. 1 /= 0
+
+randomRangeD :: (Double, Double) -> Mer.PureMT -> (Double, Mer.PureMT)
+randomRangeD (min, max) gen = (val, g)
+  where
+    (r, g) = randomProbMersenne gen
+    val = r * min + (1 - r) * max
+
+randomRangeInt :: (Int, Int) -> Mer.PureMT -> (Int, Mer.PureMT)
+randomRangeInt (min, max) gen = (val, g)
+  where
+    (r, g) = Mer.randomInt gen
+    val = (r `mod` (max - min + 1)) + min
 
 randomDouble :: Double -> Double -> Rng Double
-randomDouble min max = state $ randomR (min::Double, max::Double)
+randomDouble min max = state $ randomRangeD (min::Double, max::Double)
 
 randomProbability :: Rng Double
-randomProbability = state $ randomR (0.0::Double, 1.0::Double)
+randomProbability = state randomProbMersenne
 
 randomBool :: Rng Bool
-randomBool = state $ randomR (True, False)
+randomBool = state randomBoolMersenne
 
 randomInt :: Int -> Int -> Rng Int
-randomInt min max = state $ randomR (min::Int, max::Int)
+randomInt min max = state $ randomRangeInt (min::Int, max::Int)
 
 boxMuller :: Floating a => a -> a -> (a, a)
 boxMuller u1 u2 = (r * cos t, r * sin t)
@@ -41,17 +70,17 @@ boxMuller u1 u2 = (r * cos t, r * sin t)
     r = sqrt (-2 * log u1)
     t = 2 * pi * u2
 
-gaussian :: (RandomGen g, Random a, Floating a) => a -> a -> g -> (a, g)
+gaussian :: Double -> Double -> Mer.PureMT -> (Double, Mer.PureMT)
 gaussian sd m g = (n1 * sd + m, g2)
   where
-    (u1, g1) = randomR (0, 1) g
-    (u2, g2) = randomR (0, 1) g1
+    (u1, g1) = randomProbMersenne g
+    (u2, g2) = randomProbMersenne g1
     (n1, n2) = boxMuller u1 u2
 
-randomGaussian :: (Floating a, Random a) => a -> a -> Rng a
+randomGaussian :: Double -> Double -> Rng Double
 randomGaussian sd m = state $ gaussian sd m
 
-randomGaussian' :: (Floating a, Random a) => Rng a
+randomGaussian' :: Rng Double
 randomGaussian' = state $ gaussian 1.0 0.0
 
 sample :: [a] -> Rng a
@@ -64,12 +93,12 @@ sample xs = do
 -- http://okmij.org/ftp/Haskell/perfect-shuffle.txt
 -- Obtido também em https://wiki.haskell.org/Random_shuffle
 
-fisherYatesStep :: RandomGen g => (M.Map Int a, g) -> (Int, a) -> (M.Map Int a, g)
+fisherYatesStep :: (M.Map Int a, Mer.PureMT ) -> (Int, a) -> (M.Map Int a, Mer.PureMT )
 fisherYatesStep (m, gen) (i, x) = ((M.insert j x . M.insert i (m M.! j)) m, gen')
   where
-    (j, gen') = randomR (0, i) gen
+    (j, gen') = randomRangeInt (0, i) gen
 
-fisherYates :: RandomGen g => [a] -> g -> ([a], g)
+fisherYates :: [a] -> Mer.PureMT -> ([a], Mer.PureMT )
 fisherYates [] gen = ([], gen)
 fisherYates l gen =
   toElems $ foldl fisherYatesStep (initial (head l) gen) (numerate (tail l))

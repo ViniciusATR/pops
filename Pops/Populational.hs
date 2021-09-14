@@ -8,9 +8,10 @@ module Pops.Populational (
   executeAlgorithm,
   parExecuteAlgorithm
  )where
+import GHC.Word (Word64)
 import Pops.Solution
 import Pops.Rng
-import System.Random
+import qualified System.Random.Mersenne.Pure64 as Mer
 import Control.Monad.State.Strict
 import Control.DeepSeq (force)
 import Control.Parallel.Strategies
@@ -71,7 +72,7 @@ parStep (Select sel op1 op2) pop = do
 executeAlgorithm :: (Solution s) => Int -> Int -> Int -> Populational s -> [s]
 executeAlgorithm seed size iter algo = evalState (exec algo initPop 0) gen
   where
-    gen = mkStdGen seed
+    gen = Mer.pureMT (fromIntegral seed :: Word64)
     initPop = evalState (replicateM size createRandom) gen
     exec algo pop currIter
       | iter <= currIter = return pop
@@ -83,7 +84,7 @@ executeAlgorithm seed size iter algo = evalState (exec algo initPop 0) gen
 parExecuteAlgorithm :: (Solution s, NFData s) => Int -> Int -> Int -> Populational s -> [s]
 parExecuteAlgorithm seed size iter algo = evalState (exec algo initPop 0) gen
   where
-    gen = mkStdGen seed
+    gen = Mer.pureMT (fromIntegral seed :: Word64)
     initPop = evalState (replicateM size createRandom) gen
     exec algo pop currIter
       | iter <= currIter = return pop

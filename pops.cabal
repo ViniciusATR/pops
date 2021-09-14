@@ -21,9 +21,9 @@ executable pso
   build-depends:       base >= 4.7 && < 5,
                        pops,
                        mtl,
-                       random,
                        parallel,
-                       deepseq
+                       deepseq,
+                       mersenne-random-pure64
 
 executable ga
   hs-source-dirs:      examples
@@ -33,21 +33,21 @@ executable ga
   build-depends:       base >= 4.7 && < 5,
                        pops,
                        mtl,
-                       random,
                        parallel,
-                       deepseq
+                       deepseq,
+                       mersenne-random-pure64
 
 executable parga
   hs-source-dirs:      examples
   main-is:             ParGA.hs
   default-language:    Haskell2010
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N -O2
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N -O2 -eventlog
   build-depends:       base >= 4.7 && < 5,
                        pops,
                        mtl,
-                       random,
                        parallel,
-                       deepseq
+                       deepseq,
+                       mersenne-random-pure64
 
 executable parpso
   hs-source-dirs:      examples
@@ -57,9 +57,9 @@ executable parpso
   build-depends:       base >= 4.7 && < 5,
                        pops,
                        mtl,
-                       random,
                        parallel,
-                       deepseq
+                       deepseq,
+                       mersenne-random-pure64
 
 executable optai
   hs-source-dirs:      examples
@@ -69,9 +69,9 @@ executable optai
   build-depends:       base >= 4.7 && < 5,
                        pops,
                        mtl,
-                       random,
                        parallel,
-                       deepseq
+                       deepseq,
+                       mersenne-random-pure64
 
 executable hybrid
   hs-source-dirs:      examples
@@ -81,9 +81,9 @@ executable hybrid
   build-depends:       base >= 4.7 && < 5,
                        pops,
                        mtl,
-                       random,
                        parallel,
-                       deepseq
+                       deepseq,
+                       mersenne-random-pure64
 
 library
   exposed-modules: Pops.Solution,
@@ -95,7 +95,8 @@ library
   default-language: Haskell2010
   build-depends: base >= 4.7 && < 5,
                  mtl,
-                 random,
                  containers,
                  parallel,
-                 deepseq
+                 deepseq,
+                 mersenne-random-pure64
+

@@ -3,7 +3,6 @@ import Pops.Solution
 import Pops.GA
 import Pops.Populational
 import Pops.Rng
-import System.Random
 import Control.Monad.State.Strict
 import Data.List (minimumBy, tails, sortBy)
 import Control.Parallel.Strategies (NFData)
