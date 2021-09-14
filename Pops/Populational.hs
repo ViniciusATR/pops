@@ -13,7 +13,7 @@ import Pops.Rng
 import System.Random
 import Control.Monad.State.Strict
 import Control.DeepSeq (force)
-import Control.Parallel.Strategies (NFData, rseq, parMap)
+import Control.Parallel.Strategies
 
 -- A modification localized to a single solution
 -- It's logic does not need context contained in the whole population
@@ -55,8 +55,8 @@ parStep (IndMod mod next) pop = do
   let popSize = length pop
       (gi:gs) =  genSeeds (popSize + 1) g
       applyMod (ind, gen) = force (evalState (mod ind) gen)
-      pop' = parMap rseq applyMod $ zip pop gs
-  put gi 
+      pop' = parMap rpar applyMod $ zip pop gs
+  put gi
   step next pop'
 
 parStep (PopMod mod next) pop = do
