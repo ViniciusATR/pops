@@ -61,18 +61,15 @@ createCrossoverOperator mixProbability populationSize = crossover
       let pairs = take populationSize $ [(a, b) | (a: bs) <- tails pop, b <- bs]
       mapM (aritMix mixProbability) pairs
 
+
 createParCrossoverOperator :: (NFData s, SimpleSolution s) => Double -> Int -> PopulationalModifier s
 createParCrossoverOperator mixProbability populationSize = crossover
   where
     crossover :: (NFData s, SimpleSolution s) => PopulationalModifier s
     crossover pop = do
-      g <- get
       let pairs = take populationSize $ [(a, b) | (a: bs) <- tails pop, b <- bs]
-          (gi:gs) =  genSeeds (populationSize + 1) g
-          applyMix (parents, gen) = force $ evalState (aritMix mixProbability parents) gen
-          pop' = parMap rpar applyMix $ zip pairs gs
-      put gi
-      return pop'
+      rngMapInParallel' pairs (aritMix mixProbability)
+
 
 createTruncationSelection :: SimpleSolution s => Int -> Int -> PopulationalModifier s
 createTruncationSelection numOfSelected populationSize = truncate

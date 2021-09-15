@@ -15,6 +15,8 @@ import qualified System.Random.Mersenne.Pure64 as Mer
 import Control.Monad.State.Strict
 import Control.DeepSeq (force)
 import Control.Parallel.Strategies
+import Data.Tree (flatten)
+
 
 -- A modification localized to a single solution
 -- It's logic does not need context contained in the whole population
@@ -48,16 +50,12 @@ step (Select sel op1 op2) pop = do
   pop2 <- step op2 pop
   sel pop1 pop2
 
+
 parStep :: (Solution s, NFData s) => Populational s -> [s] -> Rng [s]
 parStep End pop = return pop
 
 parStep (IndMod mod next) pop = do
-  g <- get
-  let popSize = length pop
-      (gi:gs) =  genSeeds (popSize + 1) g
-      applyMod (ind, gen) = force $ evalState (mod ind) gen
-      pop' = parMap rpar applyMod $ zip pop gs
-  put gi
+  pop' <- rngMapInParallel pop mod
   step next pop'
 
 parStep (PopMod mod next) pop = do

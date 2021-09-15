@@ -9,6 +9,9 @@ module Pops.Rng(
   sample,
   shuffle,
   randomWeightedChoice,
+  splitList,
+  rngMapInParallel,
+  rngMapInParallel',
   genSeeds
   )where
 
@@ -20,7 +23,32 @@ import qualified Data.Map as M
 import Control.DeepSeq (force)
 import Control.Parallel.Strategies
 
+
 type Rng a = State Mer.PureMT a
+
+splitList :: Int -> [a] -> [[a]]
+splitList _ [] = []
+splitList n l = take n l : splitList n (drop n l)
+
+rngMapInParallel :: (NFData s) => [s] -> (s -> Rng s) -> Rng [s]
+rngMapInParallel ls f = do
+  g <- get
+  let groups = splitList 4 ls
+      (gi: gs) = genSeeds 5 g
+      applyF (xs, gen) = force $ evalState (mapM f xs) gen
+      ls' = concat $ parMap rpar applyF $ zip groups gs
+  put gi
+  return ls'
+
+rngMapInParallel' :: (NFData s) => [(s, s)] -> ((s, s) -> Rng s) -> Rng [s]
+rngMapInParallel' ls f = do
+  g <- get
+  let groups = splitList 4 ls
+      (gi: gs) = genSeeds 5 g
+      applyF (xs, gen) = force $ evalState (mapM f xs) gen
+      ls' = concat $ parMap rpar applyF $ zip groups gs
+  put gi
+  return ls'
 
 genSeeds :: Int -> Mer.PureMT -> [Mer.PureMT]
 genSeeds n g = parMap rpar Mer.pureMT rs

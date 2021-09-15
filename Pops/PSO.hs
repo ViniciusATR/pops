@@ -79,14 +79,7 @@ createParChangeVelocityOperator maximumVelocity localbias globalbias = applyModi
     applyModifyVelocity :: (NFData s, SolutionWithVelocity s, SolutionWithHistory s) =>
                            PopulationalModifier s
     applyModifyVelocity pop = do
-      g <- get
-      let (gi:gs) =  genSeeds (popSize + 1) g
-          applyMod (ind, gen) = force $ evalState
-                                (modifyVelocity gbest maximumVelocity localbias globalbias ind)
-                                gen
-          pop' = parMap rpar applyMod $ zip pop gs
-      put gi
-      return pop'
+      rngMapInParallel pop (modifyVelocity gbest maximumVelocity localbias globalbias)
       where
         gbest = getValue $ getBest pop
         popSize = length pop
