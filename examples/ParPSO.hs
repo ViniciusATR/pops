@@ -49,11 +49,11 @@ instance SolutionWithVelocity PSOSolution where
   updateVelocity s new = s {velocity = new}
 
 changeVelocity :: PopulationalModifier PSOSolution
-changeVelocity = createChangeVelocityOperator 1.0 1.0 1.0
+changeVelocity = createParChangeVelocityOperator 1.0 1.0 1.0
 
-pso = PopMod changeVelocity (IndMod updatePosition (IndMod updateBestPosition End))
+pso = PopMod changeVelocity  $ IndMod updatePosition $ IndMod updateBestPosition End
 
 main :: IO ()
 main = do
-  let pops = parExecuteAlgorithm 42 100 1000 pso
+  let pops = parExecuteAlgorithm 42 10000 1000 pso
   print $ getBest pops

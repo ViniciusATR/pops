@@ -39,7 +39,7 @@ mutate :: IndividualModifier GASolution
 mutate = createMutationOperator 0.5
 
 crossover :: PopulationalModifier GASolution
-crossover = createCrossoverOperator 0.5 1000
+crossover = createParCrossoverOperator 0.5 1000
 
 truncateSelect :: PopulationalModifier GASolution
 truncateSelect = createTruncationSelection 10 1000
@@ -49,6 +49,6 @@ ga = PopMod truncateSelect (PopMod crossover (IndMod mutate End))
 
 main :: IO ()
 main = do
-  let pops = parExecuteAlgorithm 42 1000 1000 ga
+  let pops = parExecuteAlgorithm 42 10000 1000 ga
   print $ getBest pops
 
