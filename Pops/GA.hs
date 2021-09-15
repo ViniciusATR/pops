@@ -1,6 +1,7 @@
 module Pops.GA(
   createMutationOperator,
   createCrossoverOperator,
+  createParCrossoverOperator,
   createTruncationSelection,
   roulette,
   createTournamentSelection,
@@ -11,7 +12,10 @@ import Pops.Solution
 import Pops.Populational
 import Pops.Rng
 import Control.Monad.State.Strict
+import qualified System.Random.Mersenne.Pure64 as Mer
 import Data.List (minimumBy, tails, sortBy)
+import Control.DeepSeq (force)
+import Control.Parallel.Strategies
 
 
 createMutationOperator :: SimpleSolution s => Double -> IndividualModifier s
@@ -57,6 +61,18 @@ createCrossoverOperator mixProbability populationSize = crossover
       let pairs = take populationSize $ [(a, b) | (a: bs) <- tails pop, b <- bs]
       mapM (aritMix mixProbability) pairs
 
+createParCrossoverOperator :: (NFData s, SimpleSolution s) => Double -> Int -> PopulationalModifier s
+createParCrossoverOperator mixProbability populationSize = crossover
+  where
+    crossover :: (NFData s, SimpleSolution s) => PopulationalModifier s
+    crossover pop = do
+      g <- get
+      let pairs = take populationSize $ [(a, b) | (a: bs) <- tails pop, b <- bs]
+          (gi:gs) =  genSeeds (populationSize + 1) g
+          applyMix (parents, gen) = force $ evalState (aritMix mixProbability parents) gen
+          pop' = parMap rpar applyMix $ zip pairs gs
+      put gi
+      return pop'
 
 createTruncationSelection :: SimpleSolution s => Int -> Int -> PopulationalModifier s
 createTruncationSelection numOfSelected populationSize = truncate
