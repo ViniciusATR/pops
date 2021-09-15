@@ -2,6 +2,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 
 module Pops.PSO (
+  createParChangeVelocityOperator,
   createChangeVelocityOperator,
   updatePosition,
   updateBestPosition,
@@ -13,7 +14,10 @@ import Pops.Solution
 import Pops.Populational
 import Pops.Rng
 import Control.Monad.State.Strict
+import qualified System.Random.Mersenne.Pure64 as Mer
 import Data.List (minimumBy)
+import Control.DeepSeq (force)
+import Control.Parallel.Strategies
 
 class SimpleSolution s => SolutionWithHistory s where
   getBestPosition :: s -> [Double]
@@ -44,22 +48,45 @@ updatePosition :: SolutionWithVelocity s =>  IndividualModifier s
 updatePosition sol = return $ updateSolution sol newValue
   where newValue = zipWith (+) (getValue sol) (getVelocity sol)
 
-createChangeVelocityOperator :: (SolutionWithVelocity s, SolutionWithHistory s) =>  Double -> Double -> Double -> PopulationalModifier s
-createChangeVelocityOperator maximumVelocity localbias globalbias = changeVelocity
+modifyVelocity :: (SolutionWithVelocity s, SolutionWithHistory s) =>
+                  [Double] -> Double -> Double -> Double -> s -> Rng s
+modifyVelocity gb maximumVelocity localbias globalbias sol = do
+  let c = getValue sol
+  let cv = getVelocity sol
+  let lb = getBestPosition sol
+  r1 <- randomProbability
+  r2 <- randomProbability
+  let globalcoeff = zipWith (\x y -> globalbias * r1 * (y - x)) c gb
+  let localcoeff = zipWith (\x y -> localbias * r2 * (y - x)) c lb
+  let newVelocity = map (validateVelocity maximumVelocity) $
+                    zipWith3 (\a b c -> a + b + c) cv globalcoeff localcoeff
+  return $ updateVelocity sol newVelocity
+
+createChangeVelocityOperator :: (SolutionWithVelocity s, SolutionWithHistory s) =>
+                                 Double -> Double -> Double -> PopulationalModifier s
+createChangeVelocityOperator maximumVelocity localbias globalbias = applyModifyVelocity
   where
-    changeVelocity :: (SolutionWithVelocity s, SolutionWithHistory s) => PopulationalModifier s
-    changeVelocity pop = mapM (modify gbest) pop
+    applyModifyVelocity :: (SolutionWithVelocity s, SolutionWithHistory s) =>
+                           PopulationalModifier s
+    applyModifyVelocity pop = mapM (modifyVelocity gbest maximumVelocity localbias globalbias ) pop
       where
         gbest = getValue $ getBest pop
 
-    modify :: (SolutionWithVelocity s, SolutionWithHistory s) => [Double] -> s -> Rng s
-    modify gb sol = do
-      let c = getValue sol
-      let cv = getVelocity sol
-      let lb = getBestPosition sol
-      r1 <- randomProbability
-      r2 <- randomProbability
-      let globalcoeff = zipWith (\x y -> globalbias * r1 * (y - x)) c gb
-      let localcoeff = zipWith (\x y -> localbias * r2 * (y - x)) c lb
-      let newVelocity = map (validateVelocity maximumVelocity) $ zipWith3 (\a b c -> a + b + c) cv globalcoeff localcoeff
-      return $ updateVelocity sol newVelocity
+createParChangeVelocityOperator :: (NFData s, SolutionWithVelocity s, SolutionWithHistory s) =>
+                                 Double -> Double -> Double -> PopulationalModifier s
+createParChangeVelocityOperator maximumVelocity localbias globalbias = applyModifyVelocity
+  where
+    applyModifyVelocity :: (NFData s, SolutionWithVelocity s, SolutionWithHistory s) =>
+                           PopulationalModifier s
+    applyModifyVelocity pop = do
+      g <- get
+      let (gi:gs) =  genSeeds (popSize + 1) g
+          applyMod (ind, gen) = force $ evalState
+                                (modifyVelocity gbest maximumVelocity localbias globalbias ind)
+                                gen
+          pop' = parMap rpar applyMod $ zip pop gs
+      put gi
+      return pop'
+      where
+        gbest = getValue $ getBest pop
+        popSize = length pop
