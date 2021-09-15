@@ -17,13 +17,15 @@ import Data.Bits ((.&.))
 import qualified System.Random.Mersenne.Pure64 as Mer
 import Control.Monad.State.Strict
 import qualified Data.Map as M
+import Control.DeepSeq (force)
+import Control.Parallel.Strategies
 
 type Rng a = State Mer.PureMT a
 
 genSeeds :: Int -> Mer.PureMT -> [Mer.PureMT]
-genSeeds n g = map Mer.pureMT rs
+genSeeds n g = parMap rpar Mer.pureMT rs
   where
-    rs = evalState (replicateM n randomWordS) g
+    rs = force $ evalState (replicateM n randomWordS) g
 
 randomWordS :: Rng Word64
 randomWordS = state Mer.randomWord64
