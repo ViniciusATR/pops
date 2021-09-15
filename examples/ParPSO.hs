@@ -55,5 +55,5 @@ pso = PopMod changeVelocity  $ IndMod updatePosition $ IndMod updateBestPosition
 
 main :: IO ()
 main = do
-  let pops = parExecuteAlgorithm 42 10000 1000 pso
+  let pops = parExecuteAlgorithm 42 1000 1000 pso
   print $ getBest pops

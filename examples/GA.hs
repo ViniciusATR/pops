@@ -42,9 +42,9 @@ truncateSelect :: PopulationalModifier GASolution
 truncateSelect = createTruncationSelection 10 1000
 
 ga :: Populational GASolution
-ga = PopMod truncateSelect (PopMod crossover (IndMod mutate End))
+ga = PopMod truncateSelect $ PopMod crossover $ IndMod mutate End
 
 main :: IO ()
 main = do
-  let pops = executeAlgorithm 42 10000 1000 ga
+  let pops = executeAlgorithm 42 1000 1000 ga
   print $ getBest pops
