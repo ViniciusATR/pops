@@ -55,7 +55,7 @@ parStep (IndMod mod next) pop = do
   g <- get
   let popSize = length pop
       (gi:gs) =  genSeeds (popSize + 1) g
-      applyMod (ind, gen) = force (evalState (mod ind) gen)
+      applyMod (ind, gen) = force $ evalState (mod ind) gen
       pop' = parMap rpar applyMod $ zip pop gs
   put gi
   step next pop'
