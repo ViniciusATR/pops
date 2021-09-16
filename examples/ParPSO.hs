@@ -7,6 +7,7 @@ import Control.Monad.State.Strict
 import Data.List (minimumBy)
 import Control.Parallel.Strategies (NFData)
 import GHC.Generics (Generic)
+import System.Environment
 
 data PSOSolution = PSOSolution {
                                   value :: [Double],
@@ -48,12 +49,17 @@ instance SolutionWithVelocity PSOSolution where
   getVelocity s = velocity s
   updateVelocity s new = s {velocity = new}
 
-changeVelocity :: PopulationalModifier PSOSolution
-changeVelocity = createParChangeVelocityOperator 1.0 1.0 1.0
-
-pso = PopMod changeVelocity  $ IndMod updatePosition $ IndMod updateBestPosition End
 
 main :: IO ()
 main = do
-  let pops = parExecuteAlgorithm 42 1000 1000 pso
+  args <- getArgs
+  let seed = read $ head args :: Int
+      maxIterations = read $ args!!1 :: Int
+      popSize = read $ args!!2 :: Int
+
+      changeVelocity :: PopulationalModifier PSOSolution
+      changeVelocity = createParChangeVelocityOperator 1.0 1.0 1.0
+
+      pso = PopMod changeVelocity  $ IndMod updatePosition $ IndMod updateBestPosition End
+      pops = parExecuteAlgorithm seed popSize maxIterations pso
   print $ getBest pops

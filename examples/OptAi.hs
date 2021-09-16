@@ -4,6 +4,7 @@ import Pops.OptAi
 import Pops.Rng
 import Control.Monad.State.Strict
 import Data.List ( groupBy, sortBy, minimumBy, maximumBy,sort, tails )
+import System.Environment
 
 data AISolution = AISolution {
    value :: [Double],
@@ -42,16 +43,22 @@ instance NormalizedSolution AISolution where
         where
           normalized = fitness sol - min / range
 
-triggerTrim :: Selector AISolution
-triggerTrim = createTrimmingOperator 0.01 100
-
-cloneSelection :: PopulationalModifier AISolution
-cloneSelection = createClonalSelection 100.0 10
-
-optai :: Populational AISolution
-optai = Select triggerTrim (PopMod cloneSelection End) End
 
 main :: IO ()
 main = do
-  let pops = executeAlgorithm 42 1000 20 optai
+  args <- getArgs
+  let seed = read $ head args :: Int
+      maxIterations = read $ args!!1 :: Int
+      popSize = read $ args!!2 :: Int
+
+      triggerTrim :: Selector AISolution
+      triggerTrim = createTrimmingOperator 0.01 100
+
+      cloneSelection :: PopulationalModifier AISolution
+      cloneSelection = createClonalSelection 100.0 10
+
+      optai :: Populational AISolution
+      optai = Select triggerTrim (PopMod cloneSelection End) End
+
+      pops = executeAlgorithm seed popSize maxIterations optai
   print $ getBest pops

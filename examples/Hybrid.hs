@@ -4,6 +4,7 @@ import qualified Pops.OptAi as OA
 import qualified Pops.GA as GA
 import Pops.Rng
 import Control.Monad.State.Strict
+import System.Environment
 
 data HybridSolution = HybridSolution {
     value :: [Double],
@@ -42,22 +43,27 @@ instance OA.NormalizedSolution HybridSolution where
         where
           normalized = fitness sol - min / range
 
-mutate :: IndividualModifier HybridSolution
-mutate = GA.createMutationOperator 0.5
-
-crossover :: PopulationalModifier HybridSolution
-crossover = GA.createCrossoverOperator 0.5 1000
-
-truncateSelect :: PopulationalModifier HybridSolution
-truncateSelect = GA.createTruncationSelection 10 1000
-
-cloneSelection :: PopulationalModifier HybridSolution
-cloneSelection = OA.createClonalSelection 100.0 10
-
-hybrid :: Populational HybridSolution
-hybrid = PopMod truncateSelect (PopMod crossover (IndMod mutate (PopMod cloneSelection End)))
 
 main :: IO ()
 main = do
-    let pops = executeAlgorithm 42 1000 20 hybrid
-    print $ getBest pops
+  args <- getArgs
+  let seed = read $ head args :: Int
+      maxIterations = read $ args!!1 :: Int
+      popSize = read $ args!!2 :: Int
+      mutate :: IndividualModifier HybridSolution
+      mutate = GA.createMutationOperator 0.5
+
+      crossover :: PopulationalModifier HybridSolution
+      crossover = GA.createCrossoverOperator 0.5 popSize
+
+      truncateSelect :: PopulationalModifier HybridSolution
+      truncateSelect = GA.createTruncationSelection 10 popSize
+
+      cloneSelection :: PopulationalModifier HybridSolution
+      cloneSelection = OA.createClonalSelection 100.0 10
+
+      hybrid :: Populational HybridSolution
+      hybrid = PopMod truncateSelect $ PopMod crossover $ IndMod mutate $ PopMod cloneSelection End
+
+      pops = executeAlgorithm seed popSize maxIterations hybrid
+  print $ getBest pops

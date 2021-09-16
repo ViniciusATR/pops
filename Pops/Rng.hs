@@ -9,10 +9,8 @@ module Pops.Rng(
   sample,
   shuffle,
   randomWeightedChoice,
-  splitList,
   rngMapInParallel,
-  rngMapInParallel',
-  genSeeds
+  rngMapInParallel'
   )where
 
 import GHC.Word (Word64)
@@ -30,6 +28,11 @@ type Rng a = State Mer.PureMT a
 splitList :: Int -> [a] -> [[a]]
 splitList _ [] = []
 splitList n l = take n l : splitList n (drop n l)
+
+genSeeds :: Int -> Mer.PureMT -> [Mer.PureMT]
+genSeeds n g = parMap rpar Mer.pureMT rs
+  where
+    rs = force $ evalState (replicateM n randomWordS) g
 
 rngMapInParallel :: (NFData s) => [s] -> (s -> Rng s) -> Rng [s]
 rngMapInParallel ls f = do
@@ -52,11 +55,6 @@ rngMapInParallel' ls f = do
       ls' = concat $ parMap rpar applyF $ zip groups gs
   put gi
   return ls'
-
-genSeeds :: Int -> Mer.PureMT -> [Mer.PureMT]
-genSeeds n g = parMap rpar Mer.pureMT rs
-  where
-    rs = force $ evalState (replicateM n randomWordS) g
 
 randomWordS :: Rng Word64
 randomWordS = state Mer.randomWord64

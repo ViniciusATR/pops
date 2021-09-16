@@ -7,6 +7,7 @@ import Control.Monad.State.Strict
 import Data.List (minimumBy, tails, sortBy)
 import Control.Parallel.Strategies (NFData)
 import GHC.Generics (Generic)
+import System.Environment
 
 
 data GASolution = GASolution {
@@ -35,19 +36,24 @@ instance SimpleSolution GASolution where
       intermediate = current { value = newValue }
       fitness' = cost intermediate
 
-mutate :: IndividualModifier GASolution
-mutate = createMutationOperator 0.5
-
-crossover :: PopulationalModifier GASolution
-crossover = createParCrossoverOperator 0.5 1000
-
-truncateSelect :: PopulationalModifier GASolution
-truncateSelect = createTruncationSelection 10 1000
-
-ga :: Populational GASolution
-ga = PopMod truncateSelect $ PopMod crossover $ IndMod mutate End
-
 main :: IO ()
 main = do
-  let pops = parExecuteAlgorithm 42 1000 1000 ga
+  args <- getArgs
+  let seed = read $ args!!0 :: Int
+      maxIterations = read $ args!!1 :: Int
+      popSize = read $ args!!2 :: Int
+
+      mutate :: IndividualModifier GASolution
+      mutate = createMutationOperator 0.5
+
+      crossover :: PopulationalModifier GASolution
+      crossover = createParCrossoverOperator 0.5 popSize
+
+      truncateSelect :: PopulationalModifier GASolution
+      truncateSelect = createTruncationSelection 10 popSize
+
+      ga :: Populational GASolution
+      ga = PopMod truncateSelect $ PopMod crossover $ IndMod mutate End
+
+      pops = executeAlgorithm seed popSize maxIterations ga
   print $ getBest pops
