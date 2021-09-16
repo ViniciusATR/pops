@@ -22,6 +22,7 @@ import Control.Monad.State.Strict
 import qualified Data.Map as M
 import Control.DeepSeq (force)
 import Control.Parallel.Strategies
+import GHC.Conc.Sync (numCapabilities)
 
 
 type Rng a = State Mer.PureMT a
@@ -33,8 +34,9 @@ splitList n l = take n l : splitList n (drop n l)
 rngMapInParallel :: (NFData s) => [s] -> (s -> Rng s) -> Rng [s]
 rngMapInParallel ls f = do
   g <- get
-  let groups = splitList 4 ls
-      (gi: gs) = genSeeds 5 g
+  let n = numCapabilities
+      groups = splitList n ls
+      (gi: gs) = genSeeds (n+1) g
       applyF (xs, gen) = force $ evalState (mapM f xs) gen
       ls' = concat $ parMap rpar applyF $ zip groups gs
   put gi
@@ -43,8 +45,9 @@ rngMapInParallel ls f = do
 rngMapInParallel' :: (NFData s) => [(s, s)] -> ((s, s) -> Rng s) -> Rng [s]
 rngMapInParallel' ls f = do
   g <- get
-  let groups = splitList 4 ls
-      (gi: gs) = genSeeds 5 g
+  let n = numCapabilities
+      groups = splitList n ls
+      (gi: gs) = genSeeds (n+1) g
       applyF (xs, gen) = force $ evalState (mapM f xs) gen
       ls' = concat $ parMap rpar applyF $ zip groups gs
   put gi
