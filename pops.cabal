@@ -23,7 +23,7 @@ executable pso
                        mtl,
                        parallel,
                        deepseq,
-                       mersenne-random-pure64
+                       random >= 1.2
 
 executable ga
   hs-source-dirs:      examples
@@ -35,7 +35,7 @@ executable ga
                        mtl,
                        parallel,
                        deepseq,
-                       mersenne-random-pure64
+                       random >= 1.2
 
 executable parga
   hs-source-dirs:      examples
@@ -47,7 +47,7 @@ executable parga
                        mtl,
                        parallel,
                        deepseq,
-                       mersenne-random-pure64
+                       random >= 1.2
 
 executable parpso
   hs-source-dirs:      examples
@@ -59,7 +59,7 @@ executable parpso
                        mtl,
                        parallel,
                        deepseq,
-                       mersenne-random-pure64
+                       random >= 1.2
 
 executable optai
   hs-source-dirs:      examples
@@ -71,7 +71,7 @@ executable optai
                        mtl,
                        parallel,
                        deepseq,
-                       mersenne-random-pure64
+                       random >= 1.2
 
 executable hybrid
   hs-source-dirs:      examples
@@ -83,7 +83,7 @@ executable hybrid
                        mtl,
                        parallel,
                        deepseq,
-                       mersenne-random-pure64
+                       random >= 1.2
 
 library
   exposed-modules: Pops.Solution,
@@ -98,5 +98,5 @@ library
                  containers,
                  parallel,
                  deepseq,
-                 mersenne-random-pure64
+                 random >= 1.2
 
