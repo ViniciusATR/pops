@@ -30,7 +30,7 @@ splitList _ [] = []
 splitList n l = take n l : splitList n (drop n l)
 
 genSeeds :: Int -> StdGen -> [StdGen]
-genSeeds n g = parMap rpar mkStdGen rs
+genSeeds n g = map mkStdGen rs
   where
     rs = force $ evalState (replicateM n $ randomInt 0 9999999) g
 
