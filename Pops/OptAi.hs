@@ -1,5 +1,6 @@
 module Pops.OptAi (
   createClonalSelection,
+  createParClonalSelection,
   createTrimmingOperator,
   NormalizedSolution(..)
   )where
@@ -9,6 +10,8 @@ import Pops.Populational
 import Pops.Rng
 import Control.Monad.State.Strict ( replicateM )
 import Data.List ( groupBy, sortBy, minimumBy, maximumBy,sort, tails )
+import Control.DeepSeq (force)
+import Control.Parallel.Strategies
 
 
 class SimpleSolution s => NormalizedSolution s where
@@ -31,6 +34,18 @@ createClonalSelection beta numberOfClones = cloneSelection
     cloneSelection pop = do
       let pop' = updateNormalizedFitness pop
       mapM individualClone pop'
+      where
+        individualClone sol = do
+          mutatedClones <- replicateM numberOfClones (mutate beta sol)
+          return $ getBest $ mutatedClones ++ [sol]
+
+createParClonalSelection :: (NFData s, NormalizedSolution s) => Double -> Int -> PopulationalModifier s
+createParClonalSelection beta numberOfClones = cloneSelection
+  where
+    cloneSelection :: (NFData s, NormalizedSolution s) => PopulationalModifier s
+    cloneSelection pop = do
+      let pop' = updateNormalizedFitness pop
+      rngMapInParallel pop' individualClone
       where
         individualClone sol = do
           mutatedClones <- replicateM numberOfClones (mutate beta sol)
