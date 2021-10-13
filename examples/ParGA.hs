@@ -39,7 +39,7 @@ instance SimpleSolution GASolution where
 main :: IO ()
 main = do
   args <- getArgs
-  let seed = read $ args!!0 :: Int
+  let seed = read $ head args :: Int
       maxIterations = read $ args!!1 :: Int
       popSize = read $ args!!2 :: Int
 
