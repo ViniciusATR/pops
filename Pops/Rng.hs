@@ -29,25 +29,31 @@ splitList :: Int -> [a] -> [[a]]
 splitList _ [] = []
 splitList n l = take n l : splitList n (drop n l)
 
-genSeeds :: Int -> Rng [StdGen]
-genSeeds n = replicateM n (state split)
+genSeeds :: Int -> StdGen -> [StdGen]
+genSeeds n g = map mkStdGen rs
+  where
+    rs = force $ evalState (replicateM n $ randomInt 0 9999999) g
 
 rngMapInParallel :: (NFData s) => [s] -> (s -> Rng s) -> Rng [s]
 rngMapInParallel ls f = do
+  g <- get
   let n = length ls `div` numCapabilities
-  gs <- genSeeds n
-  let groups = splitList n ls
+      groups = splitList n ls
+      (gi: gs) = genSeeds (n+1) g
       applyF (xs, gen) = force $ evalState (mapM f xs) gen
       ls' = concat $ parMap rpar applyF $ zip groups gs
+  put gi
   return ls'
 
 rngMapInParallel' :: (NFData s) => [(s, s)] -> ((s, s) -> Rng s) -> Rng [s]
 rngMapInParallel' ls f = do
-  let n = length ls `div` numCapabilities
-  gs <- genSeeds n
-  let groups = splitList n ls
+  g <- get
+  let n = numCapabilities
+      groups = splitList n ls
+      (gi: gs) = genSeeds (n+1) g
       applyF (xs, gen) = force $ evalState (mapM f xs) gen
       ls' = concat $ parMap rpar applyF $ zip groups gs
+  put gi
   return ls'
 
 randomDouble :: Double -> Double -> Rng Double
