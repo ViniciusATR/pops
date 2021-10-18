@@ -37,11 +37,11 @@ genSeeds n g = map mkStdGen rs
 rngMapInParallel :: (NFData s) => [s] -> (s -> Rng s) -> Rng [s]
 rngMapInParallel ls f = do
   g <- get
-  let n = length ls `div` numCapabilities
+  let n = numCapabilities
       groups = splitList n ls
       (gi: gs) = genSeeds (n+1) g
       applyF (xs, gen) = force $ evalState (mapM f xs) gen
-      ls' = concat $ parMap rpar applyF $ zip groups gs
+      ls' = concat $ parMap rdeepseq applyF $ zip groups gs
   put gi
   return ls'
 
@@ -52,7 +52,7 @@ rngMapInParallel' ls f = do
       groups = splitList n ls
       (gi: gs) = genSeeds (n+1) g
       applyF (xs, gen) = force $ evalState (mapM f xs) gen
-      ls' = concat $ parMap rpar applyF $ zip groups gs
+      ls' = concat $ parMap rdeepseq applyF $ zip groups gs
   put gi
   return ls'
 
