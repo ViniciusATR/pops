@@ -40,8 +40,8 @@ rngMapInParallel ls f = do
   let n = numCapabilities
       groups = splitList n ls
       (gi: gs) = genSeeds (n+1) g
-      applyF (xs, gen) = force $ evalState (mapM f xs) gen
-      ls' = concat $ parMap rdeepseq applyF $ zip groups gs
+      applyF (xs, gen) = evalState (mapM f xs) gen
+      ls' = concat $ parMap rpar applyF $ force $ zip groups gs
   put gi
   return ls'
 
@@ -51,8 +51,8 @@ rngMapInParallel' ls f = do
   let n = numCapabilities
       groups = splitList n ls
       (gi: gs) = genSeeds (n+1) g
-      applyF (xs, gen) = force $ evalState (mapM f xs) gen
-      ls' = concat $ parMap rdeepseq applyF $ zip groups gs
+      applyF (xs, gen) = evalState (mapM f xs) gen
+      ls' = concat $ parMap rpar applyF $ force $ zip groups gs
   put gi
   return ls'
 
