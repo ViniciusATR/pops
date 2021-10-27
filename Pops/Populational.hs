@@ -83,7 +83,7 @@ parStep (Select sel op1 op2) pop = do
   sel pop1 pop2
 
 executeAlgorithm :: (Solution s) => Int -> Int -> Int -> Populational s -> [s]
-executeAlgorithm seed size iter algo = evalState (exec algo initPop 0) gen
+executeAlgorithm seed size iter algo = evalState (exec algo' initPop 0) gen
   where
     algo' = simplify algo
     gen = mkStdGen seed
@@ -96,7 +96,7 @@ executeAlgorithm seed size iter algo = evalState (exec algo initPop 0) gen
           exec algo pop' nextIter
 
 parExecuteAlgorithm :: (Solution s, NFData s) => Int -> Int -> Int -> Populational s -> [s]
-parExecuteAlgorithm seed size iter algo = evalState (exec algo initPop 0) gen
+parExecuteAlgorithm seed size iter algo = evalState (exec algo' initPop 0) gen
   where
     algo' = simplify algo
     gen = mkStdGen seed
