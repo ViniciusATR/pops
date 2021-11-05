@@ -1,0 +1,4 @@
+Best achieved result: 0.0577284712273638
+Avg time for 4 workers and 100 pop_size: 11.151159286499023 +- 0.03735355183750275
+Avg time for 4 workers and 1000 pop_size: 13.196757137775421 +- 0.09422153378001391
+Avg time for 4 workers and 10000 pop_size: 33.084313690662384 +- 0.35976703678038097
