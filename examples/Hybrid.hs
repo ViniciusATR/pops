@@ -66,4 +66,4 @@ main = do
       hybrid = PopMod truncateSelect $ PopMod crossover $ IndMod mutate $ PopMod cloneSelection End
 
       pops = executeAlgorithm seed popSize maxIterations hybrid
-  print $ getBest pops
+  print $ fitness $ getBest pops

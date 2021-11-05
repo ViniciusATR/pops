@@ -56,4 +56,4 @@ main = do
       ga = PopMod truncateSelect $ PopMod crossover $ IndMod mutate End
 
       pops = executeAlgorithm seed popSize maxIterations ga
-  print $ getBest pops
+  print $ fitness $ getBest pops

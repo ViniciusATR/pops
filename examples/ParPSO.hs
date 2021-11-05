@@ -62,4 +62,4 @@ main = do
 
       pso = PopMod changeVelocity  $ IndMod updatePosition $ IndMod updateBestPosition End
       pops = parExecuteAlgorithm seed popSize maxIterations pso
-  print $ getBest pops
+  print $ fitness $ getBest pops

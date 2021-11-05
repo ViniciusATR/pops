@@ -64,4 +64,4 @@ main = do
       optai = Select triggerTrim (PopMod cloneSelection End) End
 
       pops = executeAlgorithm seed popSize maxIterations optai
-  print $ getBest pops
+  print $ fitness $ getBest pops
