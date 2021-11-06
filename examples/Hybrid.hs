@@ -60,7 +60,7 @@ main = do
       truncateSelect = GA.createTruncationSelection 10 popSize
 
       cloneSelection :: PopulationalModifier HybridSolution
-      cloneSelection = OA.createClonalSelection 100.0 10
+      cloneSelection = OA.createClonalSelection 100.0 2 10
 
       hybrid :: Populational HybridSolution
       hybrid = PopMod truncateSelect $ PopMod crossover $ IndMod mutate $ PopMod cloneSelection End

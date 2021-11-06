@@ -19,16 +19,16 @@ class SimpleSolution s => NormalizedSolution s where
   updateNormalizedFitness :: [s] -> [s]
 
 
-mutate :: NormalizedSolution s => Double -> s -> Rng s
-mutate beta sol = do
-  modVec <- replicateM 2 randomGaussian'
+mutate :: NormalizedSolution s => Int -> Double -> s -> Rng s
+mutate size beta sol = do
+  modVec <- replicateM size randomGaussian'
   let alpha = (1.0/beta) * exp ( - (getNormalizedFitness sol) )
   let newVec = zipWith (\s r -> s + r * alpha) (getValue sol) modVec
   return $ updateSolution sol newVec
 
 
-createClonalSelection :: NormalizedSolution s => Double -> Int -> PopulationalModifier s
-createClonalSelection beta numberOfClones = cloneSelection
+createClonalSelection :: NormalizedSolution s => Double -> Int -> Int -> PopulationalModifier s
+createClonalSelection beta size numberOfClones = cloneSelection
   where
     cloneSelection :: NormalizedSolution s => PopulationalModifier s
     cloneSelection pop = do
@@ -36,11 +36,11 @@ createClonalSelection beta numberOfClones = cloneSelection
       mapM individualClone pop'
       where
         individualClone sol = do
-          mutatedClones <- replicateM numberOfClones (mutate beta sol)
+          mutatedClones <- replicateM numberOfClones (mutate size beta sol)
           return $ getBest $ mutatedClones ++ [sol]
 
-createParClonalSelection :: (NFData s, NormalizedSolution s) => Double -> Int -> PopulationalModifier s
-createParClonalSelection beta numberOfClones = cloneSelection
+createParClonalSelection :: (NFData s, NormalizedSolution s) => Double -> Int -> Int -> PopulationalModifier s
+createParClonalSelection beta size numberOfClones = cloneSelection
   where
     cloneSelection :: (NFData s, NormalizedSolution s) => PopulationalModifier s
     cloneSelection pop = do
@@ -48,7 +48,7 @@ createParClonalSelection beta numberOfClones = cloneSelection
       rngMapInParallel pop' individualClone
       where
         individualClone sol = do
-          mutatedClones <- replicateM numberOfClones (mutate beta sol)
+          mutatedClones <- replicateM numberOfClones (mutate size beta sol)
           return $ getBest $ mutatedClones ++ [sol]
 
 trim :: SimpleSolution s => Double -> Int -> [s] ->  Rng [s]

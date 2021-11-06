@@ -55,13 +55,13 @@ main = do
       popSize = read $ args!!2 :: Int
 
       triggerTrim :: Selector AISolution
-      triggerTrim = createTrimmingOperator 0.01 100
+      triggerTrim = createTrimmingOperator 0.001 (round $ fromIntegral popSize * 0.10)
 
       cloneSelection :: PopulationalModifier AISolution
-      cloneSelection = createParClonalSelection 100.0 10
+      cloneSelection = createParClonalSelection 100.0 2 10
 
       optai :: Populational AISolution
-      optai = Select triggerTrim (PopMod cloneSelection End) End
+      optai = Select triggerTrim End (PopMod cloneSelection End)
 
       pops = executeAlgorithm seed popSize maxIterations optai
   print $ fitness $ getBest pops
