@@ -72,7 +72,7 @@ def run_bench(algo):
 
 algos = ["ga", "parga", "pso", "parpso", "optai", "paroptai"]
 pop_size = [100, 1000, 10000]
-seeds = [42, 21, 10, 1000]
+seeds = [42, 21, 10, 1000, 84, 69, 13, 52]
 
 for algo in algos:
     value, res = run_bench(algo)
