@@ -13,7 +13,6 @@ import Pops.Populational
 import Pops.Rng
 import Control.Monad.State.Strict
 import Data.List (minimumBy, tails, sortBy)
-import Control.DeepSeq (force)
 import Control.Parallel.Strategies
 
 
