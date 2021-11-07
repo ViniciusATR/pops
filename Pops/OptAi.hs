@@ -1,4 +1,5 @@
 module Pops.OptAi (
+  createMutationOperator,
   createClonalSelection,
   createParClonalSelection,
   createTrimmingOperator,
@@ -25,6 +26,10 @@ mutate size beta sol = do
   let alpha = (1.0/beta) * exp ( - (getNormalizedFitness sol) )
   let newVec = zipWith (\s r -> s + r * alpha) (getValue sol) modVec
   return $ updateSolution sol newVec
+
+
+createMutationOperator :: NormalizedSolution s => Int -> Double -> IndividualModifier s
+createMutationOperator = mutate
 
 
 createClonalSelection :: NormalizedSolution s => Double -> Int -> Int -> PopulationalModifier s
