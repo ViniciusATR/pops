@@ -20,11 +20,11 @@ def time_metrics(results):
         cumsum = sum(d_time[(size, n_worker)])
         avg = cumsum / n
 
-        max_val = max(d_vals[(size, n_worker)])
+        best_val = min(d_vals[(size, n_worker)])
         stdev = statistics.stdev(d_time[(size, n_worker)])
 
         reses.append(
-            f"Avg time for {n_worker} workers and {size} pop_size: {avg} +- {stdev}\nWith best solution: {max_val}\n"
+            f"Avg time for {n_worker} workers and {size} pop_size: {avg} +- {stdev}\nWith best solution: {best_val}\n"
         )
 
     return reses
@@ -72,7 +72,7 @@ def run_bench(algo):
 
 
 algos = ["ga", "parga", "pso", "parpso", "optai", "paroptai"]
-pop_size = [100, 1000, 10000, 10000]
+pop_size = [100, 1000, 10000]
 seeds = [42, 21, 10, 1000, 90, 12, 23, 14, 999, 69]
 
 for algo in algos:
