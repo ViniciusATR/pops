@@ -4,24 +4,27 @@ import itertools
 from subprocess import run
 
 
-def time_metrics(exec_times):
+def time_metrics(results):
 
-    d = {}
+    d_time = {}
+    d_vals = {}
 
-    for size, n, t in exec_times:
-        d.setdefault((size, n), []).append(t)
+    for size, n, t, vals in results:
+        d_time.setdefault((size, n), []).append(t)
+        d_vals.setdefault((size, n), []).append(vals)
 
     reses = []
-    for size, n_worker in d:
+    for size, n_worker in d_time:
 
-        n = len(d[(size, n_worker)])
-        cumsum = sum(d[(size, n_worker)])
+        n = len(d_time[(size, n_worker)])
+        cumsum = sum(d_time[(size, n_worker)])
         avg = cumsum / n
 
-        stdev = statistics.stdev(d[(size, n_worker)])
+        max_val = max(d_vals[(size, n_worker)])
+        stdev = statistics.stdev(d_time[(size, n_worker)])
 
         reses.append(
-            f"Avg time for {n_worker} workers and {size} pop_size: {avg} +- {stdev}\n"
+            f"Avg time for {n_worker} workers and {size} pop_size: {avg} +- {stdev}\nWith best solution: {max_val}\n"
         )
 
     return reses
@@ -64,21 +67,18 @@ def run_bench(algo):
     for sc in scenarios:
         s, size, n = sc
         run_time, res_val = single_run(algo, s, size, n)
-        if res_val < result:
-            result = res_val
-        results.append((size, n, run_time))
-    return result, results
+        results.append((size, n, run_time, res_val))
+    return results
 
 
 algos = ["ga", "parga", "pso", "parpso", "optai", "paroptai"]
-pop_size = [100, 1000, 10000]
-seeds = [42, 21, 10, 1000, 84, 69, 13, 52]
+pop_size = [100, 1000, 10000, 10000]
+seeds = [42, 21, 10, 1000, 90, 12, 23, 14, 999, 69]
 
 for algo in algos:
-    value, res = run_bench(algo)
+    res = run_bench(algo)
     print(f"Benchmark for {algo}")
     metrics = time_metrics(res)
 
     with open(f"metrics/{algo}_metrics.txt", "w") as f:
-        f.write(f"Best achieved result: {value}\n")
         f.writelines(metrics)
